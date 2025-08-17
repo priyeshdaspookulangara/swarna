@@ -1,0 +1,96 @@
+@model GoldLoan.Application.DTOs.LoanDto
+
+@{
+    ViewData["Title"] = "Loan Details";
+}
+
+<h1>Loan Details for @Model.ClientName</h1>
+
+<div>
+    <h4>Loan Information</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-3">Loan ID</dt>
+        <dd class="col-sm-9">@Model.Id</dd>
+
+        <dt class="col-sm-3">Client Name</dt>
+        <dd class="col-sm-9">@Model.ClientName</dd>
+
+        <dt class="col-sm-3">Principal Amount</dt>
+        <dd class="col-sm-9">@Model.PrincipalAmount.ToString("C")</dd>
+
+        <dt class="col-sm-3">Annual Interest Rate</dt>
+        <dd class="col-sm-9">@Model.AnnualInterestRate %</dd>
+
+        <dt class="col-sm-3">Tenure</dt>
+        <dd class="col-sm-9">@Model.TenureInMonths months</dd>
+
+        <dt class="col-sm-3">Loan Date</dt>
+        <dd class="col-sm-9">@Model.LoanDate.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@Model.Status</dd>
+
+        <dt class="col-sm-3">Repayment Type</dt>
+        <dd class="col-sm-9">@Model.RepaymentType</dd>
+    </dl>
+</div>
+
+<div class="mt-4">
+    <h4>Collateral Items</h4>
+    <hr />
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Weight (grams)</th>
+                <th>Purity (karat)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.CollateralItems)
+            {
+                <tr>
+                    <td>@item.Description</td>
+                    <td>@item.WeightInGrams</td>
+                    <td>@item.PurityInKarat</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.RepaymentType == GoldLoan.Domain.Enums.RepaymentType.EMI && Model.RepaymentSchedules.Any())
+{
+    <div class="mt-4">
+        <h4>Repayment Schedule</h4>
+        <hr />
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Due Date</th>
+                    <th>Installment Amount</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RepaymentSchedules.OrderBy(s => s.DueDate))
+                {
+                    <tr>
+                        <td>@item.DueDate.ToShortDateString()</td>
+                        <td>@item.InstallmentAmount.ToString("C")</td>
+                        <td>@item.PrincipalComponent.ToString("C")</td>
+                        <td>@item.InterestComponent.ToString("C")</td>
+                        <td>@item.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-controller="Clients" asp-action="Details" asp-route-id="@Model.ClientId">Back to Client Details</a>
+</div>

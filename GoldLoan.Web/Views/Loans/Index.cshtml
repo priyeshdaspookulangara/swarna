@@ -1,0 +1,45 @@
+@model GoldLoan.Web.ViewModels.LoanIndexViewModel
+
+@{
+    ViewData["Title"] = "Loans for " + Model.ClientName;
+}
+
+<h1>Loans for @Model.ClientName</h1>
+
+<p>
+    <a asp-action="Create">Create New Loan</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Loan ID</th>
+            <th>Principal Amount</th>
+            <th>Interest Rate</th>
+            <th>Tenure</th>
+            <th>Status</th>
+            <th>Repayment Type</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Loans)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.PrincipalAmount.ToString("C")</td>
+                <td>@item.AnnualInterestRate</td>
+                <td>@item.TenureInMonths months</td>
+                <td>@item.Status</td>
+                <td>@item.RepaymentType</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div>
+    <a asp-controller="Clients" asp-action="Index">Back to Clients List</a>
+</div>

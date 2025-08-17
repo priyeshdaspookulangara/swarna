@@ -1,0 +1,165 @@
+@model GoldLoan.Web.ViewModels.LoanViewModel
+
+@{
+    ViewData["Title"] = "Create Loan";
+}
+
+<h1>Create New Loan</h1>
+<hr />
+
+<form asp-action="Create">
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Loan Details</h4>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="ClientId" class="control-label"></label>
+                <select asp-for="ClientId" class="form-control" asp-items="Model.Clients"></select>
+                <span asp-validation-for="ClientId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PrincipalAmount" class="control-label"></label>
+                <input asp-for="PrincipalAmount" class="form-control" id="principal" />
+                <span asp-validation-for="PrincipalAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AnnualInterestRate" class="control-label"></label>
+                <input asp-for="AnnualInterestRate" class="form-control" id="rate" />
+                <span asp-validation-for="AnnualInterestRate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TenureInMonths" class="control-label"></label>
+                <input asp-for="TenureInMonths" class="form-control" id="tenure" />
+                <span asp-validation-for="TenureInMonths" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RepaymentType" class="control-label"></label>
+                <select asp-for="RepaymentType" class="form-control" asp-items="Html.GetEnumSelectList<GoldLoan.Domain.Enums.RepaymentType>()"></select>
+                <span asp-validation-for="RepaymentType" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h4>Calculation Preview</h4>
+            <dl class="row">
+                <dt class="col-sm-6">Monthly EMI:</dt>
+                <dd class="col-sm-6" id="emiResult">N/A</dd>
+                <dt class="col-sm-6">Total Bullet Repayment:</dt>
+                <dd class="col-sm-6" id="bulletResult">N/A</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h4>Collateral Items</h4>
+            <table class="table" id="collateralTable">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Weight (grams)</th>
+                        <th>Purity (karat)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="collateralItemsContainer">
+                    <!-- Collateral item rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+            <button type="button" id="addCollateral" class="btn btn-secondary">Add Collateral</button>
+        </div>
+    </div>
+
+    <div class="form-group mt-4">
+        <input type="submit" value="Create Loan" class="btn btn-primary" />
+        <a asp-action="Index" asp-controller="Clients" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+<!-- Hidden template for new collateral rows -->
+<table style="display:none">
+    <tbody id="collateralTemplate">
+        <tr>
+            <td>
+                <input type="text" name="CollateralItems[__prefix__].Description" class="form-control" />
+            </td>
+            <td>
+                <input type="number" name="CollateralItems[__prefix__].WeightInGrams" class="form-control" />
+            </td>
+            <td>
+                <input type="number" name="CollateralItems[__prefix__].PurityInKarat" class="form-control" />
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger remove-collateral">Remove</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            // --- Collateral Items ---
+            var collateralIndex = 0;
+
+            $("#addCollateral").click(function () {
+                var template = $("#collateralTemplate").html().replace(/__prefix__/g, collateralIndex);
+                $("#collateralItemsContainer").append(template);
+                collateralIndex++;
+            });
+
+            $("#collateralItemsContainer").on("click", ".remove-collateral", function () {
+                $(this).closest("tr").remove();
+                updateCollateralIndexes();
+            });
+
+            function updateCollateralIndexes() {
+                collateralIndex = 0;
+                $("#collateralItemsContainer tr").each(function () {
+                    $(this).find("input").each(function () {
+                        this.name = this.name.replace(/\[\d+\]/, "[" + collateralIndex + "]");
+                    });
+                    collateralIndex++;
+                });
+            }
+
+            // --- Calculation ---
+            $("#principal, #rate, #tenure").on('change keyup', function () {
+                calculateRepayments();
+            });
+
+            function calculateRepayments() {
+                var principal = parseFloat($("#principal").val());
+                var rate = parseFloat($("#rate").val());
+                var tenure = parseInt($("#tenure").val());
+
+                if (isNaN(principal) || isNaN(rate) || isNaN(tenure) || principal <= 0 || rate <= 0 || tenure <= 0) {
+                    $("#emiResult").text("N/A");
+                    $("#bulletResult").text("N/A");
+                    return;
+                }
+
+                var requestData = {
+                    principal: principal,
+                    annualRate: rate,
+                    tenureInMonths: tenure
+                };
+
+                $.ajax({
+                    url: '/api/calculator/calculate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function (data) {
+                        $("#emiResult").text(data.emiAmount.toFixed(2));
+                        $("#bulletResult").text(data.bulletRepaymentAmount.toFixed(2));
+                    },
+                    error: function () {
+                        $("#emiResult").text("Error");
+                        $("#bulletResult").text("Error");
+                    }
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,24 @@
+@model GoldLoan.Web.ViewModels.RepaymentViewModel
+
+@{
+    ViewData["Title"] = "Make a Repayment";
+}
+
+<h1>Make a Repayment</h1>
+
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="LoanId" />
+    <div class="form-group">
+        <label asp-for="Amount" class="control-label"></label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Pay" class="btn btn-primary" />
+    </div>
+</form>
+
+<div>
+    <a asp-controller="Loans" asp-action="Details" asp-route-id="@Model.LoanId">Back to Loan Details</a>
+</div>

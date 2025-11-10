@@ -18,6 +18,7 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<ILoanPlanRepository, LoanPlanRepository>();
 builder.Services.AddScoped<ILoanPlanService, LoanPlanService>();
 builder.Services.AddScoped<IFinancialCalculatorService, FinancialCalculatorService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 builder.Services.AddControllersWithViews();
 

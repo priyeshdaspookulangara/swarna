@@ -125,5 +125,37 @@ namespace GoldLoan.Application.Services
 
             return loanDtos;
         }
+
+        public async Task<IReadOnlyList<LoanDto>> GetDefaulterLoansAsync()
+        {
+            var loans = await _loanRepository.GetDefaulterLoansAsync();
+            return loans.Select(loan => new LoanDto
+            {
+                Id = loan.Id,
+                ClientId = loan.ClientId,
+                ClientName = loan.Client.Name,
+                PrincipalAmount = loan.PrincipalAmount,
+                AnnualInterestRate = loan.AnnualInterestRate,
+                LoanDate = loan.LoanDate,
+                TenureInMonths = loan.TenureInMonths,
+                Status = loan.Status
+            }).ToList();
+        }
+
+        public async Task<IReadOnlyList<LoanDto>> GetUpcomingRenewalsAsync(int days)
+        {
+            var loans = await _loanRepository.GetUpcomingRenewalsAsync(days);
+            return loans.Select(loan => new LoanDto
+            {
+                Id = loan.Id,
+                ClientId = loan.ClientId,
+                ClientName = loan.Client.Name,
+                PrincipalAmount = loan.PrincipalAmount,
+                AnnualInterestRate = loan.AnnualInterestRate,
+                LoanDate = loan.LoanDate,
+                TenureInMonths = loan.TenureInMonths,
+                Status = loan.Status
+            }).ToList();
+        }
     }
 }

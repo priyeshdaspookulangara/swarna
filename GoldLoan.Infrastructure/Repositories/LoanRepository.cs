@@ -60,5 +60,24 @@ namespace GoldLoan.Infrastructure.Repositories
             _context.Loans.Remove(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IReadOnlyList<Loan>> GetDefaulterLoansAsync()
+        {
+            var today = DateTime.UtcNow.Date;
+            return await _context.Loans
+                .Include(l => l.Client)
+                .Where(l => l.LoanDate.AddMonths(l.TenureInMonths) < today && l.Status != Domain.Enums.LoanStatus.Closed)
+                .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<Loan>> GetUpcomingRenewalsAsync(int days)
+        {
+            var today = DateTime.UtcNow.Date;
+            var upcomingDate = today.AddDays(days);
+            return await _context.Loans
+                .Include(l => l.Client)
+                .Where(l => l.LoanDate.AddMonths(l.TenureInMonths) >= today && l.LoanDate.AddMonths(l.TenureInMonths) <= upcomingDate && l.Status != Domain.Enums.LoanStatus.Closed)
+                .ToListAsync();
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace GoldLoan.Infrastructure.Data
     {
         public static void Initialize(ApplicationDbContext context)
         {
-            context.Database.EnsureCreated();
+            context.Database.Migrate();
 
             // Look for any clients.
             if (context.Clients.Any())
@@ -37,6 +37,18 @@ namespace GoldLoan.Infrastructure.Data
             foreach (Loan l in loans)
             {
                 context.Loans.Add(l);
+            }
+            context.SaveChanges();
+
+            var loanPlans = new LoanPlan[]
+            {
+                new LoanPlan{Name="Standard 12-Month Plan", AnnualInterestRate=12, TenureInMonths=12, RepaymentType=Domain.Enums.RepaymentType.EMI},
+                new LoanPlan{Name="Express 6-Month Plan", AnnualInterestRate=15, TenureInMonths=6, RepaymentType=Domain.Enums.RepaymentType.EMI}
+            };
+
+            foreach (LoanPlan lp in loanPlans)
+            {
+                context.LoanPlans.Add(lp);
             }
             context.SaveChanges();
         }

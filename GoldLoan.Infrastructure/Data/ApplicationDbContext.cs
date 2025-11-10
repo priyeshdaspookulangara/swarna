@@ -16,6 +16,7 @@ namespace GoldLoan.Infrastructure.Data
         public DbSet<RepaymentSchedule> RepaymentSchedules { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<LoanPlan> LoanPlans { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

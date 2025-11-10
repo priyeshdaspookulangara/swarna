@@ -13,15 +13,34 @@ namespace GoldLoan.Application.Services
     {
         private readonly ILoanRepository _loanRepository;
         private readonly IFinancialCalculatorService _calculatorService;
+        private readonly IJournalEntryService _journalEntryService;
+        private readonly IAccountRepository _accountRepository;
+        private Dictionary<string, int> _accountMappings;
 
-        public LoanService(ILoanRepository loanRepository, IFinancialCalculatorService calculatorService)
+        public LoanService(ILoanRepository loanRepository, IFinancialCalculatorService calculatorService, IJournalEntryService journalEntryService, IAccountRepository accountRepository)
         {
             _loanRepository = loanRepository;
             _calculatorService = calculatorService;
+            _journalEntryService = journalEntryService;
+            _accountRepository = accountRepository;
+            _accountMappings = new Dictionary<string, int>();
+        }
+
+        private async Task InitializeAccountMappings()
+        {
+            if (_accountMappings.Count == 0)
+            {
+                var accounts = await _accountRepository.ListAllAsync();
+                foreach (var account in accounts)
+                {
+                    _accountMappings.Add(account.AccountName, account.Id);
+                }
+            }
         }
 
         public async Task<LoanDto> CreateLoanAsync(LoanDto loanDto)
         {
+            await InitializeAccountMappings();
             var loan = new Loan
             {
                 ClientId = loanDto.ClientId,
@@ -46,6 +65,20 @@ namespace GoldLoan.Application.Services
 
             var newLoan = await _loanRepository.AddAsync(loan);
             loanDto.Id = newLoan.Id;
+
+            // Create a journal entry for the new loan
+            var journalEntry = new JournalEntry
+            {
+                EntryDate = DateTime.UtcNow,
+                Description = $"Loan disbursement for client {loan.ClientId}",
+                Lines = new List<JournalEntryLine>
+                {
+                    new JournalEntryLine { AccountId = _accountMappings["Loans Receivable"], Debit = loan.PrincipalAmount, Credit = 0 },
+                    new JournalEntryLine { AccountId = _accountMappings["Cash"], Debit = 0, Credit = loan.PrincipalAmount }
+                }
+            };
+            await _journalEntryService.CreateJournalEntryAsync(journalEntry);
+
             return loanDto;
         }
 
@@ -124,6 +157,26 @@ namespace GoldLoan.Application.Services
             }).ToList();
 
             return loanDtos;
+        }
+
+        public async Task UpdateLoanAsync(LoanDto loanDto)
+        {
+            var loan = await _loanRepository.GetByIdAsync(loanDto.Id);
+            if (loan != null)
+            {
+                loan.Status = loanDto.Status;
+                // In a real application, you would map all the properties
+                // For now, we only need to update the repayment schedule status
+                foreach (var scheduleDto in loanDto.RepaymentSchedules)
+                {
+                    var schedule = loan.RepaymentSchedules.FirstOrDefault(s => s.Id == scheduleDto.Id);
+                    if (schedule != null)
+                    {
+                        schedule.Status = scheduleDto.Status;
+                    }
+                }
+                await _loanRepository.UpdateAsync(loan);
+            }
         }
     }
 }

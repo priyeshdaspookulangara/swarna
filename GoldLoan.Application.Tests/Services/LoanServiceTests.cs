@@ -13,13 +13,25 @@ namespace GoldLoan.Application.Tests.Services
     {
         private readonly Mock<ILoanRepository> _mockLoanRepository;
         private readonly Mock<IFinancialCalculatorService> _mockCalculatorService;
+        private readonly Mock<IJournalEntryService> _mockJournalEntryService;
+        private readonly Mock<IAccountRepository> _mockAccountRepository;
         private readonly LoanService _loanService;
 
         public LoanServiceTests()
         {
             _mockLoanRepository = new Mock<ILoanRepository>();
             _mockCalculatorService = new Mock<IFinancialCalculatorService>();
-            _loanService = new LoanService(_mockLoanRepository.Object, _mockCalculatorService.Object);
+            _mockJournalEntryService = new Mock<IJournalEntryService>();
+            _mockAccountRepository = new Mock<IAccountRepository>();
+
+            var accounts = new List<Account>
+            {
+                new Account { Id = 1, AccountName = "Loans Receivable" },
+                new Account { Id = 2, AccountName = "Cash" }
+            };
+            _mockAccountRepository.Setup(r => r.ListAllAsync()).ReturnsAsync(accounts);
+
+            _loanService = new LoanService(_mockLoanRepository.Object, _mockCalculatorService.Object, _mockJournalEntryService.Object, _mockAccountRepository.Object);
         }
 
         [Fact]
@@ -80,6 +92,34 @@ namespace GoldLoan.Application.Tests.Services
                 l.RepaymentSchedules.Count == 0
             )), Times.Once);
             _mockCalculatorService.Verify(c => c.CalculateEmi(It.IsAny<decimal>(), It.IsAny<decimal>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateLoanAsync_ShouldCreateJournalEntry()
+        {
+            // Arrange
+            var loanDto = new LoanDto
+            {
+                PrincipalAmount = 10000,
+                AnnualInterestRate = 10,
+                TenureInMonths = 12,
+                RepaymentType = RepaymentType.Bullet
+            };
+
+            _mockLoanRepository.Setup(r => r.AddAsync(It.IsAny<Loan>()))
+                .ReturnsAsync((Loan l) => {
+                    l.Id = 1;
+                    return l;
+                });
+
+            // Act
+            var result = await _loanService.CreateLoanAsync(loanDto);
+
+            // Assert
+            _mockJournalEntryService.Verify(j => j.CreateJournalEntryAsync(It.Is<JournalEntry>(je =>
+                je.Lines.Any(l => l.AccountId == 1 && l.Debit == 10000) &&
+                je.Lines.Any(l => l.AccountId == 2 && l.Credit == 10000)
+            )), Times.Once);
         }
     }
 }

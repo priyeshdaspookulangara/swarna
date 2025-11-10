@@ -93,4 +93,8 @@
 
 <div class="mt-4">
     <a asp-controller="Clients" asp-action="Details" asp-route-id="@Model.ClientId">Back to Client Details</a>
+    @if (Model.RepaymentType == GoldLoan.Domain.Enums.RepaymentType.EMI)
+    {
+        <a asp-controller="Repayments" asp-action="Create" asp-route-loanId="@Model.Id" class="btn btn-primary">Pay</a>
+    }
 </div>

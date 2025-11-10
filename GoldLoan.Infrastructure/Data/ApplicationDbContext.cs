@@ -17,6 +17,9 @@ namespace GoldLoan.Infrastructure.Data
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<LoanPlan> LoanPlans { get; set; }
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<JournalEntry> JournalEntries { get; set; }
+        public DbSet<JournalEntryLine> JournalEntryLines { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +56,14 @@ namespace GoldLoan.Infrastructure.Data
 
             modelBuilder.Entity<Transaction>()
                 .Property(t => t.Amount)
+                .HasColumnType("decimal(18, 2)");
+
+            modelBuilder.Entity<JournalEntryLine>()
+                .Property(j => j.Debit)
+                .HasColumnType("decimal(18, 2)");
+
+            modelBuilder.Entity<JournalEntryLine>()
+                .Property(j => j.Credit)
                 .HasColumnType("decimal(18, 2)");
         }
     }

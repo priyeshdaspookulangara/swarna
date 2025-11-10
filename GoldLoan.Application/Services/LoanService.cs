@@ -104,6 +104,13 @@ namespace GoldLoan.Application.Services
                     PrincipalComponent = rs.PrincipalComponent,
                     InterestComponent = rs.InterestComponent,
                     Status = rs.Status
+                }).ToList(),
+                Transactions = loan.Transactions.Select(t => new TransactionDto
+                {
+                    Id = t.Id,
+                    TransactionDate = t.TransactionDate,
+                    Amount = t.Amount,
+                    Type = t.Type
                 }).ToList()
             };
         }
@@ -124,6 +131,20 @@ namespace GoldLoan.Application.Services
             }).ToList();
 
             return loanDtos;
+        }
+
+        public async Task<TransactionDto?> GetTransactionByIdAsync(int id)
+        {
+            var transaction = await _loanRepository.GetTransactionByIdAsync(id);
+            if (transaction == null) return null;
+
+            return new TransactionDto
+            {
+                Id = transaction.Id,
+                TransactionDate = transaction.TransactionDate,
+                Amount = transaction.Amount,
+                Type = transaction.Type
+            };
         }
     }
 }

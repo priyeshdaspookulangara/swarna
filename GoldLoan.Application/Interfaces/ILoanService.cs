@@ -9,6 +9,7 @@ namespace GoldLoan.Application.Interfaces
         Task<LoanDto?> GetLoanByIdAsync(int id);
         Task<IReadOnlyList<LoanDto>> GetLoansForClientAsync(int clientId);
         Task<LoanDto> CreateLoanAsync(LoanDto loanDto);
+        Task<TransactionDto?> GetTransactionByIdAsync(int id);
         // Other methods like Update/Delete can be added later if needed
     }
 }

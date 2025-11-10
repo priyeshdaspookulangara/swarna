@@ -17,5 +17,6 @@ namespace GoldLoan.Application.DTOs
         public RepaymentType RepaymentType { get; set; }
         public List<CollateralItemDto> CollateralItems { get; set; } = new List<CollateralItemDto>();
         public List<RepaymentScheduleDto> RepaymentSchedules { get; set; } = new List<RepaymentScheduleDto>();
+        public List<TransactionDto> Transactions { get; set; } = new List<TransactionDto>();
     }
 }

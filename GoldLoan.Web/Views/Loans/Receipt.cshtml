@@ -1,0 +1,47 @@
+@model GoldLoan.Application.DTOs.TransactionDto
+
+@{
+    Layout = null; // This view has no layout
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Receipt</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .receipt-container { width: 300px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .details { margin-bottom: 20px; }
+        .details dt { float: left; width: 120px; font-weight: bold; }
+        .details dd { margin-left: 120px; }
+    </style>
+</head>
+<body onload="window.print();">
+
+    <div class="receipt-container">
+        <div class="header">
+            <h2>Transaction Receipt</h2>
+        </div>
+        <div class="details">
+            <dl>
+                <dt>Transaction ID:</dt>
+                <dd>@Model.Id</dd>
+
+                <dt>Transaction Date:</dt>
+                <dd>@Model.TransactionDate.ToString("yyyy-MM-dd HH:mm")</dd>
+
+                <dt>Amount:</dt>
+                <dd>@Model.Amount.ToString("C")</dd>
+
+                <dt>Transaction Type:</dt>
+                <dd>@Model.Type</dd>
+            </dl>
+        </div>
+        <div class="footer" style="text-align: center;">
+            <p>Thank you!</p>
+        </div>
+    </div>
+
+</body>
+</html>

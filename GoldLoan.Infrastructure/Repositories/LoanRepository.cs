@@ -24,6 +24,7 @@ namespace GoldLoan.Infrastructure.Repositories
                 .Include(l => l.Client)
                 .Include(l => l.CollateralItems)
                 .Include(l => l.RepaymentSchedules)
+                .Include(l => l.Transactions)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 
@@ -59,6 +60,11 @@ namespace GoldLoan.Infrastructure.Repositories
         {
             _context.Loans.Remove(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<Transaction?> GetTransactionByIdAsync(int id)
+        {
+            return await _context.Transactions.FindAsync(id);
         }
     }
 }

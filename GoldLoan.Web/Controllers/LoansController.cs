@@ -131,5 +131,16 @@ namespace GoldLoan.Web.Controllers
             }
             return View(loan);
         }
+
+        // GET: Loans/PrintReceipt/5
+        public async Task<IActionResult> PrintReceipt(int id)
+        {
+            var transaction = await _loanService.GetTransactionByIdAsync(id);
+            if (transaction == null)
+            {
+                return NotFound();
+            }
+            return View("Receipt", transaction);
+        }
     }
 }

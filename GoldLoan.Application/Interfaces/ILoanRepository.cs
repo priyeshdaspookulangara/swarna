@@ -12,5 +12,6 @@ namespace GoldLoan.Application.Interfaces
         Task UpdateAsync(Loan entity);
         Task DeleteAsync(Loan entity);
         Task<IReadOnlyList<Loan>> GetLoansByClientIdAsync(int clientId);
+        Task<Transaction?> GetTransactionByIdAsync(int id);
     }
 }

@@ -14,6 +14,10 @@ namespace GoldLoan.Web.ViewModels
         public int ClientId { get; set; }
         public IEnumerable<SelectListItem> Clients { get; set; } = new List<SelectListItem>();
 
+        [Display(Name = "Loan Plan")]
+        public int? LoanPlanId { get; set; }
+        public IEnumerable<SelectListItem> LoanPlans { get; set; } = new List<SelectListItem>();
+
         [Display(Name = "Principal Amount")]
         [Required]
         [Range(1, double.MaxValue, ErrorMessage = "Principal must be a positive number.")]

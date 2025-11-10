@@ -8,12 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"),
+        x => x.MigrationsAssembly("GoldLoan.Infrastructure")));
 
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<ILoanPlanRepository, LoanPlanRepository>();
+builder.Services.AddScoped<ILoanPlanService, LoanPlanService>();
 builder.Services.AddScoped<IFinancialCalculatorService, FinancialCalculatorService>();
 
 builder.Services.AddControllersWithViews();
@@ -49,8 +52,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        var dbLogger = services.GetRequiredService<ILogger<Program>>();
+        dbLogger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
 

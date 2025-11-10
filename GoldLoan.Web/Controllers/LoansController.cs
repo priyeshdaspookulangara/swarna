@@ -12,23 +12,31 @@ namespace GoldLoan.Web.Controllers
     {
         private readonly ILoanService _loanService;
         private readonly IClientService _clientService;
+        private readonly ILoanPlanService _loanPlanService;
 
-        public LoansController(ILoanService loanService, IClientService clientService)
+        public LoansController(ILoanService loanService, IClientService clientService, ILoanPlanService loanPlanService)
         {
             _loanService = loanService;
             _clientService = clientService;
+            _loanPlanService = loanPlanService;
         }
 
         // GET: Loans/Create
         public async Task<IActionResult> Create()
         {
             var clients = await _clientService.GetAllClientsAsync();
+            var loanPlans = await _loanPlanService.GetAllLoanPlansAsync();
             var viewModel = new LoanViewModel
             {
                 Clients = clients.Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
                     Text = c.Name
+                }),
+                LoanPlans = loanPlans.Select(lp => new SelectListItem
+                {
+                    Value = lp.Id.ToString(),
+                    Text = lp.Name
                 })
             };
             return View(viewModel);
@@ -45,9 +53,6 @@ namespace GoldLoan.Web.Controllers
                 {
                     ClientId = loanViewModel.ClientId,
                     PrincipalAmount = loanViewModel.PrincipalAmount,
-                    AnnualInterestRate = loanViewModel.AnnualInterestRate,
-                    TenureInMonths = loanViewModel.TenureInMonths,
-                    RepaymentType = loanViewModel.RepaymentType,
                     LoanDate = System.DateTime.UtcNow,
                     Status = Domain.Enums.LoanStatus.Active,
                     CollateralItems = loanViewModel.CollateralItems.Select(c => new CollateralItemDto
@@ -57,6 +62,23 @@ namespace GoldLoan.Web.Controllers
                         PurityInKarat = c.PurityInKarat
                     }).ToList()
                 };
+
+                if (loanViewModel.LoanPlanId.HasValue)
+                {
+                    var loanPlan = (await _loanPlanService.GetAllLoanPlansAsync()).FirstOrDefault(lp => lp.Id == loanViewModel.LoanPlanId.Value);
+                    if (loanPlan != null)
+                    {
+                        loanDto.AnnualInterestRate = loanPlan.AnnualInterestRate;
+                        loanDto.TenureInMonths = loanPlan.TenureInMonths;
+                        loanDto.RepaymentType = loanPlan.RepaymentType;
+                    }
+                }
+                else
+                {
+                    loanDto.AnnualInterestRate = loanViewModel.AnnualInterestRate;
+                    loanDto.TenureInMonths = loanViewModel.TenureInMonths;
+                    loanDto.RepaymentType = loanViewModel.RepaymentType;
+                }
 
                 var createdLoan = await _loanService.CreateLoanAsync(loanDto);
                 return RedirectToAction("Details", "Clients", new { id = createdLoan.ClientId });
@@ -68,6 +90,12 @@ namespace GoldLoan.Web.Controllers
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
+            });
+            var loanPlans = await _loanPlanService.GetAllLoanPlansAsync();
+            loanViewModel.LoanPlans = loanPlans.Select(lp => new SelectListItem
+            {
+                Value = lp.Id.ToString(),
+                Text = lp.Name
             });
             return View(loanViewModel);
         }
